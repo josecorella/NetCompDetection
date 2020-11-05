@@ -1,0 +1,12 @@
+{
+    "server ip address" : "xxx.xxx.xx.xxx",
+    "src port number udp": "xxxx",
+    "dst port number udp": "xxxx", 
+    "dst port number tcp head": "xxxx",
+    "dst port number tcp tail": "xxxx",
+    "tcp port number": "xxxx",
+    "payload size": "xx",
+    "inter-measurement time": "xx",
+    "udp num packets": "xx",
+    "ttl": "xx"
+}
