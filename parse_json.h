@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
-#include "jsmn.h"
 
 struct json {
     char *serverIp;
@@ -21,4 +20,8 @@ struct json {
 };
 
 
-void read_json(struct json * json_s, char *config_file, char *buffer);
+void read_json(struct json * json_s, char *config_file);
+void load_json_s(struct json * json_s, char *line);
+void print_json_s(struct json * json_s);
+
+#endif
