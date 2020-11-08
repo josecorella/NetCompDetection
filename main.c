@@ -11,6 +11,7 @@
 #include "parse_json.h"
 #include "mem.h"
 #include "construct_packet.h"
+#include "logger.h"
 
 #define SA struct sockaddr
 
@@ -53,7 +54,13 @@ int main (int argc, char **argv) {
     /* Load Entropy */
     entropy(&preProbe[16], config.payloadSize - 16);
 
-    printf("Entropy: %s\n", preProbe);
+    /* Try Connecting to server */
+    if (connect(socketFd, (SA*) &client, sizeof(client)) != 0) {
+        fprintf(stderr, "Failure to Connect to Server");
+        return EXIT_FAILURE;
+    } else {
+        LOGP("Connection Successful!! :)\n");
+    }
 
     
 

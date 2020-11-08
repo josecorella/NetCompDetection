@@ -12,7 +12,7 @@ CFLAGS = -g
 
 all : ${PROGS}
 
-main: main.c parse_json.h parse_json.o mem.h mem.o construct_packet.h construct_packet.o
+main: main.c parse_json.h parse_json.o mem.h mem.o construct_packet.h construct_packet.o logger.h
 	gcc ${CFLAGS} -o $@ main.c parse_json.o mem.o construct_packet.o
 
 clean :
