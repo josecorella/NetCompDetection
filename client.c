@@ -15,27 +15,10 @@
 #include "construct_packet.h"
 #include "logger.h"
 
-#define SA struct sockaddr
 #define MAXDATA 1024
 #define IP_MTU_DISCOVER 10
 #define IP_PMTUDISC_DO 2
 
-void set_up_socket(struct json config, int sockeType, int *socketFd, struct sockaddr_in *client) {
-    *socketFd = socket(AF_INET, sockeType, 0);
-
-    if (*socketFd == -1) {
-        fprintf(stderr, "Failed to set up socket connection");
-        exit(EXIT_FAILURE);
-    }
-
-    /* 0 out client struct */
-    memset(client, 0, sizeof(*client));
-
-    client->sin_family = AF_INET;
-    client->sin_addr.s_addr = inet_addr(config.serverIp); 
-    client->sin_port = htons(atoi(config.tcpPort));
-
-}
 
 int main (int argc, char **argv) {
     struct json config;
@@ -56,10 +39,19 @@ int main (int argc, char **argv) {
     read_json(&config, argv[1], data);
 
     /* Set up socket connection */
-    set_up_socket(config, SOCK_STREAM, &socketFd, &client);
+    socketFd = socket(AF_INET, SOCK_STREAM, 0);
+    if (socketFd == -1) {
+        fprintf(stderr, "Failed to set up socket connection");
+        exit(EXIT_FAILURE);
+    }
+
+    memset(&client, 0, sizeof(client));
+    client.sin_family = AF_INET;
+    client.sin_addr.s_addr = inet_addr(config.serverIp); 
+    client.sin_port = htons(atoi(config.tcpPort));
 
     /* Try Connecting to server */
-    if (connect(socketFd, (SA*) &client, sizeof(client)) != 0) {
+    if (connect(socketFd, (struct sockaddr *) &client, sizeof(client)) != 0) {
         fprintf(stderr, "Failure to Connect to Server");
         return EXIT_FAILURE;
     } else {
@@ -162,6 +154,8 @@ int main (int argc, char **argv) {
 
     sleep(10);
 
+    /* IF WE HAVE MADE IT THIS FAR WE ARE IN PHASE 3 */
+    
     struct sockaddr_in serverAddress;
     
     //create another socket to report the findings of the server
@@ -171,25 +165,28 @@ int main (int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    /* IF WE HAVE MADE IT THIS FAR WE ARE IN PHASE 3 */
     memset(&serverAddress, 0, sizeof(serverAddress));
+    serverAddress.sin_family = AF_INET;
+    serverAddress.sin_addr.s_addr = inet_addr(config.serverIp);
+    serverAddress.sin_port = htons(8082);
 
+    //time to connect client socket to server socket to see if there is any compression
+    if (connect(socketFd, (struct sockaddr *) &serverAddress, sizeof(serverAddress)) == -1) {
+        fprintf(stderr, "Could not connect to Server :(\n");
+        return EXIT_FAILURE;
+    }
 
+    memset(&data, 0, MAXDATA);
+    send(socketFd, data, MAXDATA, 0);
+    memset(&data, 0, MAXDATA);
+    recv(socketFd, data, MAXDATA, 0);
+    close(socketFd);
 
+    //Did we have compression???
+    printf("%s\n", data);
+    free(randomData);
+    free(randomData2);
 
-
-
-
-
-
-
-
-
-
-
-    
-
-
-    
-
+    return 0;
 }
+
