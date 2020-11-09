@@ -1,4 +1,4 @@
-PROGS = compdetect_client
+PROGS = compdetect_client compdetect_server
 OBJS = parse_json.o mem.o construct_packet.o
 
 CFLAGS = -g
