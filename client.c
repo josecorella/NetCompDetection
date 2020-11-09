@@ -14,6 +14,7 @@
 #include "logger.h"
 
 #define SA struct sockaddr
+#define MAXDATA 1024
 
 void set_up_socket(struct json config, int sockeType, int *socketFd, struct sockaddr_in *client) {
     *socketFd = socket(AF_INET, sockeType, 0);
@@ -37,9 +38,10 @@ int main (int argc, char **argv) {
     int socketFd, val, clientLen; 
     struct sockaddr_in client, cli;
     uint8_t *preProbe, *probe;
-    char data[1024] = {0};
+    char data[MAXDATA] = {0};
 
     /* Pre Probing phase */
+    
     if (argc != 2) {
         fprintf(stderr, "Usage: ./compdetectclient <config file>\n");
         return EXIT_FAILURE;
@@ -47,13 +49,10 @@ int main (int argc, char **argv) {
 
     read_json(&config, argv[1], data);
 
-    preProbe = unsgnintmem(config.payloadSize);
 
     /* Set up socket connection */
-    //set_up_socket(config, SOCK_STREAM, &socketFd, &client);
+    set_up_socket(config, SOCK_STREAM, &socketFd, &client);
 
-    /* Load Entropy */
-    entropy(&preProbe[16], config.payloadSize - 16);
 
     /* Try Connecting to server */
     if (connect(socketFd, (SA*) &client, sizeof(client)) != 0) {
@@ -64,7 +63,37 @@ int main (int argc, char **argv) {
     }
 
     /* Attempt to send data to server */
+    if (send(socketFd, data, MAXDATA - 1, 0) == -1) {
+        fprintf(stderr, "Unable to send data! Exiting...\n");
+        return EXIT_FAILURE;
+    }
+
+    /* Check if we can receive data from server after sending */
+    char success[8];
+    memset(success, 0, 8);
+    if (recv(socketFd, success, 8, 0) == -1) {
+        fprintf(stderr, "Error reciving confirmation from server. Exiting...\n");
+        return EXIT_FAILURE;
+    }
+
+    if (strncmp(success, "success", 7) != 0) {
+        fprintf(stderr, "PreProbing Failed!\n");
+        return EXIT_FAILURE;
+    }
+
+    /* If we are up to this point pre-probing phase is complete; close the TCP connection */
+    close(socketFd);
+
+
+
+    /* Probing Phase - Send UDP Train */
+
+
+    preProbe = unsgnintmem(config.payloadSize);
+
     
+    /* Load Entropy */
+    entropy(&preProbe[16], config.payloadSize - 16);
 
 
     
