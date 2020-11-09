@@ -34,9 +34,10 @@ void set_up_socket(struct json config, int sockeType, int *socketFd, struct sock
 
 int main (int argc, char **argv) {
     struct json config;
-    int socketFd, connFd, val, clientLen; 
+    int socketFd, val, clientLen; 
     struct sockaddr_in client, cli;
     uint8_t *preProbe, *probe;
+    char data[1024] = {0};
 
     /* Pre Probing phase */
     if (argc != 2) {
@@ -44,7 +45,7 @@ int main (int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    read_json(&config, argv[1]);
+    read_json(&config, argv[1], data);
 
     preProbe = unsgnintmem(config.payloadSize);
 
@@ -61,6 +62,10 @@ int main (int argc, char **argv) {
     } else {
         LOGP("Connection Successful!! :)\n");
     }
+
+    /* Attempt to send data to server */
+    
+
 
     
 

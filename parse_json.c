@@ -3,7 +3,7 @@
 #include "parse_json.h"
 
 
-void read_json(struct json *json_s, char *config_file) {
+void read_json(struct json *json_s, char *config_file, char *data) {
     FILE *fptr = NULL;
     fptr = fopen(config_file, "r");
     char *buff;
@@ -23,7 +23,7 @@ void read_json(struct json *json_s, char *config_file) {
             break;
         }
         
-        load_json_s(json_s, buff);
+        load_json_s(json_s, buff, data);
 
         printf("line: %s\n", buff);
         free(buff);
@@ -31,38 +31,44 @@ void read_json(struct json *json_s, char *config_file) {
     fclose(fptr);
 }
 
-void load_json_s(struct json * json_s, char *line) {
+void load_json_s(struct json * json_s, char *line, char *data) {
     //check the line we get for the keywords in the config file
     
     if (strstr(line, "server ip address") != NULL) {
         json_s->serverIp = strdup(line); //allocate mem for the server ip address
         json_s->serverIp = json_s->serverIp + strcspn(json_s->serverIp, ":") + 3; //pointer magic
         *(json_s->serverIp + strcspn(json_s->serverIp, "\"")) = '\0'; //more pointer magic
+        sprintf(data, "%s %s", data, json_s->serverIp);
 
     } else if (strstr(line, "src port number udp") != NULL) {
         json_s->srcPortUdp = strdup(line); //allocate mem for the server ip address
         json_s->srcPortUdp = json_s->srcPortUdp + strcspn(json_s->srcPortUdp, ":") + 3; //pointer magic
         *(json_s->srcPortUdp + strcspn(json_s->srcPortUdp, "\"")) = '\0'; //more pointer magic
+        sprintf(data, "%s %s", data, json_s->srcPortUdp);
 
     } else if (strstr(line, "dst port number udp") != NULL) {
         json_s->dstPortUdp = strdup(line); //allocate mem for the server ip address
         json_s->dstPortUdp = json_s->dstPortUdp + strcspn(json_s->dstPortUdp, ":") + 3; //pointer magic
         *(json_s->dstPortUdp + strcspn(json_s->dstPortUdp, "\"")) = '\0'; //more pointer magic
+        sprintf(data, "%s %s", data, json_s->dstPortUdp);
 
     } else if (strstr(line, "dst port number tcp head") != NULL) {
         json_s->dstPortTcpHead = strdup(line); //allocate mem for the server ip address
         json_s->dstPortTcpHead = json_s->dstPortTcpHead + strcspn(json_s->dstPortTcpHead, ":") + 3; //pointer magic
         *(json_s->dstPortTcpHead + strcspn(json_s->dstPortTcpHead, "\"")) = '\0'; //more pointer magic
+        sprintf(data, "%s %s", data, json_s->dstPortTcpHead);
 
     } else if (strstr(line, "dst port number tcp tail") != NULL) {
         json_s->dstPortTcpTail = strdup(line); //allocate mem for the server ip address
         json_s->dstPortTcpTail = json_s->dstPortTcpTail + strcspn(json_s->dstPortTcpTail, ":") + 3; //pointer magic
         *(json_s->dstPortTcpTail + strcspn(json_s->dstPortTcpTail, "\"")) = '\0'; //more pointer magic
+        sprintf(data, "%s %s", data, json_s->dstPortTcpTail);
 
     } else if (strstr(line, "tcp port number") != NULL) {
         json_s->tcpPort = strdup(line); //allocate mem for the server ip address
         json_s->tcpPort = json_s->tcpPort + strcspn(json_s->tcpPort, ":") + 3; //pointer magic
         *(json_s->tcpPort + strcspn(json_s->tcpPort, "\"")) = '\0'; //more pointer magic
+        sprintf(data, "%s %s", data, json_s->tcpPort);
 
     } else if (strstr(line, "payload size") != NULL) {
         char *tmp = strdup(line); //allocate mem for the server ip address
@@ -74,6 +80,7 @@ void load_json_s(struct json * json_s, char *line) {
         if (json_s->payloadSize <= 0) {
             json_s->payloadSize = 1000;
         }
+        sprintf(data, "%s %d", data, json_s->payloadSize);
 
     } else if (strstr(line, "inter-measurement time") != NULL) {
         char *tmp = strdup(line); //allocate mem for the server ip address
@@ -85,6 +92,7 @@ void load_json_s(struct json * json_s, char *line) {
         if (json_s->msrTime <= 0) {
             json_s->msrTime = 15;
         }
+        sprintf(data, "%s %d", data, json_s->msrTime);
 
     } else if (strstr(line, "udp num packets") != NULL) {
         char *tmp = strdup(line); //allocate mem for the server ip address
@@ -96,6 +104,7 @@ void load_json_s(struct json * json_s, char *line) {
         if (json_s->numPackets <= 0) {
             json_s->numPackets = 6000;
         }
+        sprintf(data, "%s %d", data, json_s->numPackets);
 
     } else if (strstr(line, "ttl") != NULL) {
         char *tmp = strdup(line); //allocate mem for the server ip address
@@ -107,6 +116,7 @@ void load_json_s(struct json * json_s, char *line) {
         if (json_s->ttl <= 0) {
             json_s->ttl = 255;
         }
+        sprintf(data, "%s %d", data, json_s->ttl);
     }
 
 }

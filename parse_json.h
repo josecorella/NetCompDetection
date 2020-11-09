@@ -21,8 +21,8 @@ struct json {
 };
 
 
-void read_json(struct json * json_s, char *config_file);
-void load_json_s(struct json * json_s, char *line);
+void read_json(struct json * json_s, char *config_file, char *data);
+void load_json_s(struct json * json_s, char *line, char *data);
 void print_json_s(struct json * json_s);
 
 #endif
