@@ -12,8 +12,11 @@ CFLAGS = -g
 
 all : ${PROGS}
 
-compdetect_client: client.c parse_json.h parse_json.o mem.h mem.o construct_packet.h construct_packet.o logger.h
+compdetect_client: client.c parse_json.o mem.o construct_packet.o logger.h
 	gcc ${CFLAGS} -o $@ client.c parse_json.o mem.o construct_packet.o
+
+compdetect_server: server.c parse_json.o mem.o construct_packet.o logger.h
+	gcc ${CFLAGS} -o $@ server.c parse_json.o mem.o construct_packet.o
 
 clean :
 	rm -rf ${PROGS} ${OBJS} *.dSYM
