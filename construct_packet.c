@@ -18,3 +18,10 @@ void entropy(uint8_t *entropy, int len) {
 
 }
 
+void set_up_packet(uint8_t *data, unsigned int id) {
+    unsigned int cpId = id;
+    for(int i = 0; i <= 15 ;i++) {
+        data[i] = (cpId & 0b1) + '0';
+        cpId >>= 1;
+    }
+}

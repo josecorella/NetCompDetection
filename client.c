@@ -39,7 +39,8 @@ void set_up_socket(struct json config, int sockeType, int *socketFd, struct sock
 
 int main (int argc, char **argv) {
     struct json config;
-    int socketFd, val, clientLen, udpFd, df; 
+    int socketFd, val, addressLen, udpFd, df;
+    unsigned int packetId = 0;
     struct sockaddr_in client, cli, address, clientSrc;
     uint8_t *randomData, *randomData2;
     char data[MAXDATA] = {0};
@@ -89,12 +90,7 @@ int main (int argc, char **argv) {
 
 
     /* Probing Phase - Send UDP Train */
-    
-    randomData = unsgnintmem(config.payloadSize);
-    
-    /* Load Entropy */
-    entropy(&randomData[16], config.payloadSize - 16); //Why at 16? see the UDP packet structure in spec
-    
+     
     udpFd = socket(AF_INET, SOCK_DGRAM, 0);
 
     if (udpFd < 0) {
@@ -136,7 +132,54 @@ int main (int argc, char **argv) {
     /* IF WE HAVE MADE IT THIS FAR WE CAN START SENDING PACKETS OVER!!! WOOT WOOT */
 
     /* Send low entropy packets */
-    int addressLen = sizeof(address);
+    randomData = unsgnintmem(config.payloadSize);
+    randomData2 = unsgnintmem(config.payloadSize);
+    entropy(&randomData2[16], config.payloadSize - 16);
+
+    addressLen = sizeof(address);
+    sendto(udpFd, randomData, config.payloadSize, 0, (struct sockaddr *) &address, addressLen);
+    
+    /*Send Low Entropy Data*/
+    for (int i = 0; i < config.numPackets; i++) {
+        set_up_packet(randomData, packetId++);
+        if (sendto(udpFd, randomData, config.payloadSize, 0, (struct sockaddr *) &address, addressLen) <= 0) {
+            continue;
+        }
+    }
+
+    sleep(config.msrTime);
+
+    /* Send High Entropy Data */
+    for (int i = 0; i < config.numPackets; i++) {
+        set_up_packet(randomData2, packetId++);
+        if (sendto(udpFd, randomData2, config.payloadSize, 0, (struct sockaddr *) &address, addressLen) <= 0) {
+            continue;
+        }
+    }
+
+    printf("Packets Sent, closing connection in 3, 2, 1 ...\n");
+    close(udpFd);
+
+    sleep(10);
+
+    struct sockaddr_in serverAddress;
+    
+    //create another socket to report the findings of the server
+    socketFd = socket(AF_INET, SOCK_STREAM, 0);
+    if (socketFd == -1) {
+        fprintf(stderr, "Could not set up socket :(\n");
+        return EXIT_FAILURE;
+    }
+
+    /* IF WE HAVE MADE IT THIS FAR WE ARE IN PHASE 3 */
+    memset(&serverAddress, 0, sizeof(serverAddress));
+
+
+
+
+
+
+
 
 
 

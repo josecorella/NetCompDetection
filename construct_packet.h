@@ -25,5 +25,5 @@
 #include <sys/wait.h>
 
 void entropy(uint8_t *data, int len);
-
+void set_up_packet(uint8_t *data, unsigned int id);
 #endif
