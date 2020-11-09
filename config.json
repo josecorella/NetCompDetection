@@ -1,12 +1,12 @@
 {
     "server ip address" : "xxx.xxx.xx.xxx",
-    "src port number udp": "xxxx",
-    "dst port number udp": "xxxx", 
+    "src port number udp": "9876",
+    "dst port number udp": "8765", 
     "dst port number tcp head": "xxxx",
     "dst port number tcp tail": "xxxx",
     "tcp port number": "xxxx",
-    "payload size": "xx",
-    "inter-measurement time": "xx",
-    "udp num packets": "xx",
+    "payload size": "10",
+    "inter-measurement time": "15",
+    "udp num packets": "60",
     "ttl": "xx"
 }

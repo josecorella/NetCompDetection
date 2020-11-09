@@ -7,6 +7,8 @@
 #include <errno.h> 
 #include <string.h>
 #include <arpa/inet.h>
+#include <netinet/in.h>
+#include <netinet/ip.h>
 
 #include "parse_json.h"
 #include "mem.h"
@@ -15,6 +17,8 @@
 
 #define SA struct sockaddr
 #define MAXDATA 1024
+#define IP_MTU_DISCOVER 10
+#define IP_PMTUDISC_DO 2
 
 void set_up_socket(struct json config, int sockeType, int *socketFd, struct sockaddr_in *client) {
     *socketFd = socket(AF_INET, sockeType, 0);
@@ -35,9 +39,9 @@ void set_up_socket(struct json config, int sockeType, int *socketFd, struct sock
 
 int main (int argc, char **argv) {
     struct json config;
-    int socketFd, val, clientLen; 
-    struct sockaddr_in client, cli;
-    uint8_t *preProbe, *probe;
+    int socketFd, val, clientLen, udpFd, df; 
+    struct sockaddr_in client, cli, address, clientSrc;
+    uint8_t *randomData, *randomData2;
     char data[MAXDATA] = {0};
 
     /* Pre Probing phase */
@@ -47,12 +51,11 @@ int main (int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
+    /* Read Config */
     read_json(&config, argv[1], data);
-
 
     /* Set up socket connection */
     set_up_socket(config, SOCK_STREAM, &socketFd, &client);
-
 
     /* Try Connecting to server */
     if (connect(socketFd, (SA*) &client, sizeof(client)) != 0) {
@@ -85,15 +88,63 @@ int main (int argc, char **argv) {
     close(socketFd);
 
 
-
     /* Probing Phase - Send UDP Train */
-
-
-    preProbe = unsgnintmem(config.payloadSize);
-
+    
+    randomData = unsgnintmem(config.payloadSize);
     
     /* Load Entropy */
-    entropy(&preProbe[16], config.payloadSize - 16);
+    entropy(&randomData[16], config.payloadSize - 16); //Why at 16? see the UDP packet structure in spec
+    
+    udpFd = socket(AF_INET, SOCK_DGRAM, 0);
+
+    if (udpFd < 0) {
+        fprintf(stderr, "Failure setting up UDP Socket :(\n");
+        return EXIT_FAILURE;
+    }
+
+    /* Set up struct for sending packets to server */
+    memset(&address, 0, sizeof(address));
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = inet_addr(config.serverIp);
+    address.sin_port = htons(atoi(config.dstPortUdp));
+
+    /* Set up struct for recieving packets from any source once we bind to the socket */
+    memset(&clientSrc, 0, sizeof(clientSrc));
+    clientSrc.sin_family = AF_INET;
+    clientSrc.sin_addr.s_addr = htonl(INADDR_ANY); //why INADDR_ANY?  in the bind call, the socket will be bound to all local interfaces
+    clientSrc.sin_port = htons(atoi(config.srcPortUdp));
+    df = IP_PMTUDISC_DO;
+
+    /* Set up Don't Fragment Bit see https://www.programmersought.com/article/48555483026/ for approach */
+    if (setsockopt(udpFd, IPPROTO_IP, IP_MTU_DISCOVER, &df, sizeof(df)) == -1) {
+        fprintf(stderr, "Don't Fragment bit not set :(\n");
+        return EXIT_FAILURE;
+    }
+
+    /* Bind Socket */
+    if (bind(udpFd, (struct sockaddr *) &clientSrc, sizeof(clientSrc)) == -1) {
+        fprintf(stderr, "Failed to Bind to socket :(\n");
+        return EXIT_FAILURE;
+    }
+
+    /* Connect Socket */
+    if (connect(udpFd, (struct sockaddr *) &address, sizeof(address)) == -1) {
+        fprintf(stderr, "Failed to connect to socket :(\n");
+        return EXIT_FAILURE;
+    }
+
+    /* IF WE HAVE MADE IT THIS FAR WE CAN START SENDING PACKETS OVER!!! WOOT WOOT */
+
+    /* Send low entropy packets */
+    int addressLen = sizeof(address);
+
+
+
+
+
+
+
+    
 
 
     
