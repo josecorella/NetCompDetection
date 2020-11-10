@@ -45,7 +45,7 @@ int main (int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
 
-    memset(&client, 0, sizeof(client));
+    bzero(&client, sizeof(client));
     client.sin_family = AF_INET;
     client.sin_addr.s_addr = inet_addr(config.serverIp); 
     client.sin_port = htons(atoi(config.tcpPort));
@@ -72,7 +72,7 @@ int main (int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    if (strncmp(success, "success", 7) != 0) {
+    if (strncmp(success, "Success", 7) != 0) {
         fprintf(stderr, "PreProbing Failed!\n");
         return EXIT_FAILURE;
     }
@@ -91,7 +91,7 @@ int main (int argc, char **argv) {
     }
 
     /* Set up struct for sending packets to server */
-    memset(&address, 0, sizeof(address));
+    bzero(&address, sizeof(address));
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = inet_addr(config.serverIp);
     address.sin_port = htons(atoi(config.dstPortUdp));
@@ -165,7 +165,7 @@ int main (int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    memset(&serverAddress, 0, sizeof(serverAddress));
+    bzero(&serverAddress, sizeof(serverAddress));
     serverAddress.sin_family = AF_INET;
     serverAddress.sin_addr.s_addr = inet_addr(config.serverIp);
     serverAddress.sin_port = htons(8082);
